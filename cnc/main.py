@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-import os
-import sys
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import urllib.parse as urlparse
 import json
