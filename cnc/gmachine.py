@@ -393,6 +393,12 @@ class GMachine(object):
                 raise GMachineException("failed to calibrate")
         elif c == 'G53':  # switch to machine coords
             self._local = Coordinates(0.0, 0.0, 0.0, 0.0)
+        elif c == 'G60':  # Save current position
+            pass
+        elif c == 'G61':  # Return to saved position
+            pass
+        elif c == 'G80':  # Cancel current motion mode
+            pass
         elif c == 'G90':  # switch to absolute coords
             self._absoluteCoordinates = True
         elif c == 'G91':  # switch to relative coords
@@ -407,13 +413,17 @@ class GMachine(object):
                     self._convertCoordinates)
             else:
                 self._local = self._position
-        elif c == 'M3':  # spindle on
+        elif c == 'G93':  # Open microplate reader
+            pass
+        elif c == 'G94':  # Close microplate reader
+            pass
+        elif c == 'M3' or c == 'M4':  # Light source on
             spindle_rpm = gcode.get('S', self._spindle_rpm)
             if spindle_rpm < 0 or spindle_rpm > SPINDLE_MAX_RPM:
                 raise GMachineException("bad spindle speed")
             self._spindle(spindle_rpm)
             self._spindle_rpm = spindle_rpm
-        elif c == 'M5':  # spindle off
+        elif c == 'M5':  # Light source off
             self._spindle(0)
         elif c == 'M2' or c == 'M30':  # program finish, reset everything.
             self.reset()

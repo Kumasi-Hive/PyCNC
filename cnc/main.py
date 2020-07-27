@@ -2,27 +2,13 @@
 
 import os
 import sys
-import readline
-import atexit
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import urllib.parse as urlparse
+import json
 
 import cnc.logging_config as logging_config
 from cnc.gcode import GCode, GCodeException
 from cnc.gmachine import GMachine, GMachineException
-
-try:  # python3 compatibility
-    type(raw_input)
-except NameError:
-    # noinspection PyShadowingBuiltins
-    raw_input = input
-
-# configure history file for interactive mode
-history_file = os.path.join(os.environ['HOME'], '.pycnc_history')
-try:
-    readline.read_history_file(history_file)
-except IOError:
-    pass
-readline.set_history_length(1000)
-atexit.register(readline.write_history_file, history_file)
 
 machine = GMachine()
 
@@ -35,33 +21,33 @@ def do_line(line):
         print('ERROR ' + str(e))
         return False
     if res is not None:
-        print('OK ' + res)
+        return 'OK ' + res
     else:
-        print('OK')
+        return 'OK'
     return True
 
+
+class GetHandler(BaseHTTPRequestHandler):
+
+    def do_GET(self):
+        parsed_path = urlparse.urlparse(self.path)
+        # print(f"QUERY: {parsed_path.query}")
+        query = urlparse.parse_qs(parsed_path.query)
+        command = query["com"][0]
+        
+        response = do_line(command)
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(bytes(response, "utf-8"))
+        return
 
 def main():
     logging_config.debug_disable()
     try:
-        if len(sys.argv) > 1:
-            # Read file with gcode
-            with open(sys.argv[1], 'r') as f:
-                for line in f:
-                    line = line.strip()
-                    print('> ' + line)
-                    if not do_line(line):
-                        break
-        else:
-            # Main loop for interactive shell
-            # Use stdin/stdout, additional interfaces like
-            # UART, Socket or any other can be added.
-            print("*************** Welcome to PyCNC! ***************")
-            while True:
-                line = raw_input('> ')
-                if line == 'quit' or line == 'exit':
-                    break
-                do_line(line)
+        PORT = 10913
+        server = HTTPServer(('localhost', PORT), GetHandler)
+        print(f'Starting server at http://localhost:{PORT}')
+        server.serve_forever()
     except KeyboardInterrupt:
         pass
     print("\r\nExiting...")
