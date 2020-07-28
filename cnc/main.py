@@ -31,12 +31,16 @@ class GetHandler(BaseHTTPRequestHandler):
         parsed_path = urlparse.urlparse(self.path)
         # print(f"QUERY: {parsed_path.query}")
         query = urlparse.parse_qs(parsed_path.query)
-        command = query["com"][0]
-        
-        response = do_line(command)
-        self.send_response(200)
-        self.end_headers()
-        self.wfile.write(bytes(response, "utf-8"))
+        command = query["cmd"][0]
+        if command:
+            response = do_line(command)
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(bytes(response, "utf-8"))
+        else:
+            self.send_response(400)
+            self.end_headers()
+            self.wfile.write(b"Bad Request")
         return
 
 def main():

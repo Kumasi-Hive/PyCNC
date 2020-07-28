@@ -417,6 +417,9 @@ class GMachine(object):
             pass
         elif c == 'G94':  # Close microplate reader
             pass
+        # TODO
+        elif c == 'G95':  # Scan well
+            answer = "5.7"
         elif c == 'M3' or c == 'M4':  # Light source on
             spindle_rpm = gcode.get('S', self._spindle_rpm)
             if spindle_rpm < 0 or spindle_rpm > SPINDLE_MAX_RPM:
